@@ -13,6 +13,7 @@ select,input[type="number"]{padding:6px 8px;border:1px solid #ccc;border-radius:
 #hand{display:flex;flex-wrap:wrap;gap:8px}
 .card{background:#fff;border:1px solid #eee;padding:8px;border-radius:6px;cursor:pointer;min-width:180px;text-align:center}
 .card:hover{box-shadow:0 4px 10px rgba(0,0,0,0.08)}
+.card.selected{background:#d4e6f1;border:2px solid var(--accent);font-weight:600}
 #playedCards{display:flex;flex-direction:column;gap:8px}
 button{background:var(--accent);color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer}
 button:hover{opacity:0.9}

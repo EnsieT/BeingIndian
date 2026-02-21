@@ -36,6 +36,12 @@ function fillBlanks(scenario){
   return scenario;
 }
 
+function countBlanks(scenario){
+  // count occurrences of _____
+  const matches = scenario.match(/_____/g);
+  return matches ? matches.length : 0;
+}
+
 function startGame(){
   const cat = $('categorySelect').value;
   const count = Math.max(3,Math.min(12,parseInt($('playerCount').value||4)));
@@ -86,21 +92,63 @@ function startPlayTurn(){
   // determine which player to show (skip judge)
   let idx = (state.judgeIndex + 1 + state.playIndex) % state.players.length;
   const player = state.players[idx];
-  $('turnLabel').textContent = `Player ${player.id}'s turn to play`;
+  const blanksNeeded = countBlanks(state.currentScenario);
+  $('turnLabel').textContent = `Player ${player.id}'s turn to play (select ${blanksNeeded} card${blanksNeeded>1?'s':''})`;
   const hand = $('hand'); hand.innerHTML='';
+  
+  let selectedCards = [];
+  const cardEls = [];
+  
   player.hand.forEach((card,i)=>{
     const el=document.createElement('div');el.className='card';el.textContent=card;
-    el.onclick=()=>{ playCard(idx,i); };
+    cardEls[i] = el;
+    el.onclick=()=>{ 
+      if(selectedCards.includes(i)){
+        selectedCards = selectedCards.filter(x => x !== i);
+        el.classList.remove('selected');
+      } else if(selectedCards.length < blanksNeeded){
+        selectedCards.push(i);
+        el.classList.add('selected');
+      }
+    };
     hand.appendChild(el);
   });
+  
+  // create a "submit selection" button
+  const submitBtn = document.createElement('button');
+  submitBtn.textContent = `Play ${blanksNeeded} card${blanksNeeded>1?'s':''}`;
+  submitBtn.style.marginTop = '12px';
+  submitBtn.onclick = () => {
+    if(selectedCards.length === blanksNeeded){
+      playCard(idx, selectedCards.slice());
+    }
+  };
+  hand.parentElement.appendChild(submitBtn);
+  
   $('playerTurn').classList.remove('hidden'); $('playedArea').classList.add('hidden');
-  $('nextTurnBtn').classList.remove('hidden'); $('judgePickBtn').classList.add('hidden'); $('nextRoundBtn').classList.add('hidden');
+  $('nextTurnBtn').classList.add('hidden'); $('judgePickBtn').classList.add('hidden'); $('nextRoundBtn').classList.add('hidden');
 }
 
-function playCard(playerIdx,handIdx){
-  const card = state.players[playerIdx].hand.splice(handIdx,1)[0];
-  state.played.push({card,player:playerIdx});
+function playCard(playerIdx, indicesOrIndex){
+  const player = state.players[playerIdx];
+  let cards = [];
+  
+  if(Array.isArray(indicesOrIndex)){
+    // multiple card indices selected - remove in reverse order to avoid index shifting
+    const sortedIndices = indicesOrIndex.sort((a,b) => b-a);
+    cards = sortedIndices.map(i => player.hand[i]);
+    sortedIndices.forEach(i => player.hand.splice(i,1));
+  } else {
+    // single card index
+    cards = [player.hand[indicesOrIndex]];
+    player.hand.splice(indicesOrIndex, 1);
+  }
+  
+  // combine card responses with a /
+  const combinedCard = cards.join(' / ');
+  state.played.push({card: combinedCard, player: playerIdx});
   state.playIndex++;
+  
   // auto-advance to next player
   if(state.playIndex >= state.players.length -1) showPlayedForJudge(); else startPlayTurn();
 }
