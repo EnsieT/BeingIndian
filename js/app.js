@@ -175,9 +175,9 @@ function initializeGame(names){
   }
   
   shuffle(state.responses);
-  // deal 7 each
+  // deal 10 each
   for(let p of state.players){
-    for(let i=0;i<7;i++) p.hand.push(drawResponse());
+    for(let i=0;i<10;i++) p.hand.push(drawResponse());
   }
   state.judgeIndex = 0; state.playIndex = 0; state.played = [];
   $('setup').classList.add('hidden');
@@ -340,7 +340,8 @@ function judgePick(play){
   // move played to discard
   state.played.forEach(p=>state.discard.push(p.card));
   // refill hands to 7
-  state.players.forEach(p=>{while(p.hand.length<7) p.hand.push(drawResponse())});
+  // refill hands to 10
+  state.players.forEach(p=>{while(p.hand.length<10) p.hand.push(drawResponse())});
   // advance judge
   state.judgeIndex = (state.judgeIndex+1) % state.players.length;
   renderScoreboard();
