@@ -94,7 +94,8 @@ function startPlayTurn(){
   const player = state.players[idx];
   const blanksNeeded = countBlanks(state.currentScenario);
   $('turnLabel').textContent = `Player ${player.id}'s turn to play (select ${blanksNeeded} card${blanksNeeded>1?'s':''})`;
-  const hand = $('hand'); hand.innerHTML='';
+  const hand = $('hand'); 
+  hand.innerHTML='';
   
   let selectedCards = [];
   const cardEls = [];
@@ -121,6 +122,8 @@ function startPlayTurn(){
   
   // only show play button for multi-card scenarios
   if(blanksNeeded > 1){
+    const br = document.createElement('div');br.style.width = '100%';br.style.height = '0';
+    hand.appendChild(br);
     const submitBtn = document.createElement('button');
     submitBtn.textContent = `Play ${blanksNeeded} cards`;
     submitBtn.style.marginTop = '12px';
@@ -129,7 +132,7 @@ function startPlayTurn(){
         playCard(idx, selectedCards.slice());
       }
     };
-    hand.parentElement.appendChild(submitBtn);
+    hand.appendChild(submitBtn);
   }
   
   $('playerTurn').classList.remove('hidden'); $('playedArea').classList.add('hidden');
@@ -156,8 +159,28 @@ function playCard(playerIdx, indicesOrIndex){
   state.played.push({card: combinedCard, player: playerIdx});
   state.playIndex++;
   
-  // auto-advance to next player
-  if(state.playIndex >= state.players.length -1) showPlayedForJudge(); else startPlayTurn();
+  // show "pass to next" screen instead of auto-advancing
+  showPassToNext();
+}
+
+function showPassToNext(){
+  // determine next player (skip judge)
+  let nextIdx = (state.judgeIndex + 1 + state.playIndex) % state.players.length;
+  
+  if(state.playIndex >= state.players.length -1){
+    // all players have played, show for judge
+    showPlayedForJudge();
+  } else {
+    const nextPlayer = state.players[nextIdx];
+    $('playerTurn').classList.add('hidden');
+    $('playedArea').classList.add('hidden');
+    $('roundInfo').textContent = `Player ${nextPlayer.id}, it's your turn! Tap "Ready" when you have the device.`;
+    $('nextTurnBtn').textContent = 'Ready';
+    $('nextTurnBtn').classList.remove('hidden');
+    $('nextTurnBtn').onclick = () => startPlayTurn();
+    $('judgePickBtn').classList.add('hidden');
+    $('nextRoundBtn').classList.add('hidden');
+  }
 }
 
 function showPlayedForJudge(){
