@@ -11,7 +11,18 @@
     <h1>Scenario & Response</h1>
 
     <section id="setup">
-      <label>Players: <input id="playerCount" type="number" min="3" max="12" value="4"></label>
+      <div>
+        <label for="categorySelect">Category:</label>
+        <select id="categorySelect">
+          <option value="basic">Basic (Desi)</option>
+          <option value="edgier">Edgier (Spicy)</option>
+          <option value="office">Office (Corporate)</option>
+        </select>
+      </div>
+      <div>
+        <label for="playerCount">Players:</label>
+        <input id="playerCount" type="number" min="3" max="12" value="4">
+      </div>
       <button id="startBtn">Start Game</button>
     </section>
 

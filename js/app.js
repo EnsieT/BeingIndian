@@ -6,7 +6,8 @@ let state = {
   currentScenario: null,
   judgeIndex: 0,
   playIndex: 0,
-  played: []
+  played: [],
+  category: 'basic'
 };
 
 const $ = id => document.getElementById(id);
@@ -14,8 +15,14 @@ const $ = id => document.getElementById(id);
 async function loadCards(){
   const res = await fetch('data/cards.json');
   const data = await res.json();
-  state.scenarios = data.scenarios.slice();
-  state.responses = data.responses.slice();
+  state.categoryData = data.categories;
+}
+
+function loadCategory(cat){
+  state.category = cat;
+  const catData = state.categoryData[cat];
+  state.scenarios = catData.scenarios.slice();
+  state.responses = catData.responses.slice();
 }
 
 function shuffle(arr){
@@ -24,8 +31,15 @@ function shuffle(arr){
   }
 }
 
+function fillBlanks(scenario){
+  // if scenario has blanks (_____ pattern), return as-is for display
+  return scenario;
+}
+
 function startGame(){
+  const cat = $('categorySelect').value;
   const count = Math.max(3,Math.min(12,parseInt($('playerCount').value||4)));
+  loadCategory(cat);
   state.players = Array.from({length:count},(_,i)=>({id:i+1,score:0,hand:[]}));
   shuffle(state.responses);
   // deal 7 each
@@ -52,7 +66,7 @@ function nextRound(){
 }
 
 function renderRound(){
-  $('scenarioText').textContent = state.currentScenario;
+  $('scenarioText').textContent = fillBlanks(state.currentScenario);
   $('roundInfo').textContent = `Judge: Player ${state.judgeIndex+1}`;
   renderScoreboard();
   startPlayTurn();

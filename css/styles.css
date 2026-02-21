@@ -3,16 +3,19 @@
 body{margin:0;background:var(--bg);color:#111}
 .container{max-width:980px;margin:24px auto;padding:18px}
 h1{text-align:center;margin-bottom:12px}
-#setup{display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:12px}
+#setup{display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:12px;flex-wrap:wrap}
+#setup>div{display:flex;gap:8px;align-items:center}
+select,input[type="number"]{padding:6px 8px;border:1px solid #ccc;border-radius:4px;font-size:14px}
 .hidden{display:none}
 .cardBox{background:var(--card);padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.06);min-height:120px}
 #scenarioArea{margin:12px 0}
-#scenarioText{font-size:1.1rem;margin:6px 0}
+#scenarioText{font-size:1.1rem;margin:6px 0;font-weight:500}
 #hand{display:flex;flex-wrap:wrap;gap:8px}
-.card{background:#fff;border:1px solid #eee;padding:8px;border-radius:6px;cursor:pointer;min-width:180px}
+.card{background:#fff;border:1px solid #eee;padding:8px;border-radius:6px;cursor:pointer;min-width:180px;text-align:center}
 .card:hover{box-shadow:0 4px 10px rgba(0,0,0,0.08)}
 #playedCards{display:flex;flex-direction:column;gap:8px}
 button{background:var(--accent);color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer}
+button:hover{opacity:0.9}
 #controls{margin-top:12px;display:flex;gap:8px;justify-content:center}
 #scoreboard{display:flex;gap:12px;flex-wrap:wrap}
 .score{background:#fff;padding:6px 8px;border-radius:6px;border:1px solid #eee}
