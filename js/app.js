@@ -87,7 +87,20 @@ async function loadCards(){
 function loadCategory(cat){
   state.category = cat;
   const catData = state.categoryData[cat];
-  state.scenarios = catData.scenarios.slice();
+  // Prefer scenarios that contain exactly one blank (single-blank scenarios)
+  function countBlanksExact(s){
+    const m = (s||'').match(/_____/g);
+    return m ? m.length : 0;
+  }
+  const singleBlank = catData.scenarios.filter(s => countBlanksExact(s) === 1);
+  if(singleBlank.length > 0){
+    state.scenarios = singleBlank.slice();
+    debugLog(`Loaded ${state.scenarios.length} single-blank scenarios for ${cat}`);
+  } else {
+    // fallback: load all scenarios if no single-blank ones exist
+    state.scenarios = catData.scenarios.slice();
+    debugLog(`No single-blank scenarios in ${cat}; loaded ${state.scenarios.length} scenarios (fallback)`);
+  }
   state.responses = catData.responses.slice();
 }
 
