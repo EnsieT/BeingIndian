@@ -334,6 +334,35 @@ function judgePick(play){
   $('judgePickBtn').classList.add('hidden'); $('nextRoundBtn').classList.remove('hidden');
 }
 
+function resetGame(){
+  debugLog('Resetting game to setup');
+  state.scenarios = [];
+  state.responses = [];
+  state.players = [];
+  state.discard = [];
+  state.currentScenario = null;
+  state.judgeIndex = 0;
+  state.playIndex = 0;
+  state.played = [];
+  state.category = 'basic';
+  state.playerCount = 4;
+
+  // reset UI
+  if($('game')) $('game').classList.add('hidden');
+  if($('playerSetup')) $('playerSetup').classList.add('hidden');
+  if($('setup')) $('setup').classList.remove('hidden');
+  if($('playerCount')) $('playerCount').value = 4;
+  if($('customNames')) $('customNames').checked = false;
+  if($('hand')) $('hand').innerHTML = '';
+  if($('playedCards')) $('playedCards').innerHTML = '';
+  if($('scenarioText')) $('scenarioText').textContent = '—';
+  if($('roundInfo')) $('roundInfo').textContent = '';
+  if($('scoreboard')) $('scoreboard').innerHTML = '';
+
+  // reload cards data
+  loadCards().then(()=> debugLog('Cards reloaded after reset')).catch(e=>debugLog('reload error: '+(e&&e.message)));
+}
+
 document.addEventListener('DOMContentLoaded',async()=>{
   await loadCards();
   // Attach Start click handler and log for debugging
@@ -342,6 +371,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
     if(start){ start.onclick = showPlayerSetup; debugLog('startBtn handler attached'); }
     else debugLog('startBtn not found');
   }catch(e){ debugLog('attach startBtn error: '+e.message); }
+  try{ const r = $('resetBtn'); if(r){ r.onclick = resetGame; debugLog('resetBtn handler attached'); } else debugLog('resetBtn not found'); }catch(e){ debugLog('attach resetBtn error: '+e.message); }
   $('startGameBtn').onclick=()=>{
     const names = Array.from($('playerInputs').querySelectorAll('input')).map(inp => inp.value.trim());
     initializeGame(names);
