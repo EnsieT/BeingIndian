@@ -39,7 +39,9 @@ function fillBlanks(scenario){
 function countBlanks(scenario){
   // count occurrences of _____
   const matches = scenario.match(/_____/g);
-  return matches ? matches.length : 0;
+  const count = matches ? matches.length : 0;
+  // always require at least 1 card response
+  return Math.max(1, count);
 }
 
 function startGame(){
