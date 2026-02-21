@@ -24,7 +24,19 @@
         <label for="playerCount">Players:</label>
         <input id="playerCount" type="number" min="3" max="12" value="4">
       </div>
+      <div>
+        <label for="customNames">
+          <input id="customNames" type="checkbox"> Custom names?
+        </label>
+      </div>
       <button id="startBtn">Start Game</button>
+    </section>
+
+    <section id="playerSetup" class="hidden">
+      <h2>Enter Player Names (Optional)</h2>
+      <div id="playerInputs"></div>
+      <button id="startGameBtn">Start Game</button>
+      <button id="skipNamesBtn" class="secondary">Skip & Use Defaults</button>
     </section>
 
     <section id="game" class="hidden">

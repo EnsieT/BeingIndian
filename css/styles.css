@@ -26,6 +26,18 @@ select:focus,input[type="number"]:focus{outline:none;border-color:var(--accent-l
 button{background:linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);color:#fff;border:0;padding:12px 24px;border-radius:8px;cursor:pointer;font-weight:700;font-size:15px;transition:all 0.3s;box-shadow:0 4px 15px rgba(99,102,241,0.3)}
 button:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(99,102,241,0.5)}
 button:active{transform:translateY(0)}
+button.secondary{background:linear-gradient(135deg, #475569 0%, #334155 100%);box-shadow:0 4px 15px rgba(51,65,85,0.3)}
+button.secondary:hover{box-shadow:0 6px 20px rgba(51,65,85,0.5)}
+input[type="checkbox"]{margin-right:8px;cursor:pointer}
+#playerInputs{display:flex;flex-direction:column;gap:12px;margin:20px 0}
+.playerInput{display:flex;align-items:center;gap:12px;background:rgba(26,31,46,0.8);padding:12px;border-radius:8px}
+.playerAvatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:18px}
+.playerInput input{flex:1;padding:8px 12px;border:1px solid rgba(99,102,241,0.3);background:var(--card);color:var(--text);border-radius:6px}
+@keyframes slideInCard{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+@keyframes popScore{from{transform:scale(1)}to{transform:scale(1.2)}}
+@keyframes revealCard{from{opacity:0;transform:rotateY(90deg)}to{opacity:1;transform:rotateY(0deg)}}
+.card{animation:slideInCard 0.3s ease-out}
+.score{animation:popScore 0.5s ease-out}
 #controls{margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 #scoreboard{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
 .score{background:linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(99,102,241,0.2) 100%);padding:10px 16px;border-radius:8px;border:2px solid var(--success);font-weight:700;color:var(--success);min-width:100px;text-align:center}

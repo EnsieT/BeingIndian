@@ -7,10 +7,48 @@ let state = {
   judgeIndex: 0,
   playIndex: 0,
   played: [],
-  category: 'basic'
+  category: 'basic',
+  playerCount: 4
 };
 
 const $ = id => document.getElementById(id);
+
+// Avatar colors for players
+const avatarColors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6', '#f97316', '#6b7280', '#a16207', '#7c3aed'];
+
+// Simple beep sounds (using Web Audio API)
+function playSound(type = 'select'){
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    if(type === 'select'){
+      oscillator.frequency.value = 800;
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.1);
+    } else if(type === 'reveal'){
+      oscillator.frequency.value = 600;
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } else if(type === 'ding'){
+      oscillator.frequency.value = 1000;
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.2);
+    }
+  } catch(e){
+    // audio not supported
+  }
+}
 
 async function loadCards(){
   const res = await fetch('data/cards.json');
@@ -44,18 +82,66 @@ function countBlanks(scenario){
   return Math.max(1, count);
 }
 
-function startGame(){
+function showPlayerSetup(){
+  state.playerCount = Math.max(3,Math.min(12,parseInt($('playerCount').value||4)));
+  if(!$('customNames').checked){
+    // skip directly to game with default names
+    initializeGame(null);
+    return;
+  }
+  // show name input screen
+  const inputs = $('playerInputs');
+  inputs.innerHTML = '';
+  for(let i=0; i<state.playerCount; i++){
+    const div = document.createElement('div');
+    div.className = 'playerInput';
+    const avatar = document.createElement('div');
+    avatar.className = 'playerAvatar';
+    avatar.style.backgroundColor = avatarColors[i];
+    avatar.textContent = i+1;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = `Player ${i+1} name`;
+    input.maxLength = 20;
+    div.appendChild(avatar);
+    div.appendChild(input);
+    inputs.appendChild(div);
+  }
+  $('setup').classList.add('hidden');
+  $('playerSetup').classList.remove('hidden');
+}
+
+function initializeGame(names){
   const cat = $('categorySelect').value;
-  const count = Math.max(3,Math.min(12,parseInt($('playerCount').value||4)));
   loadCategory(cat);
-  state.players = Array.from({length:count},(_,i)=>({id:i+1,score:0,hand:[]}));
+  
+  if(names && names.length > 0){
+    state.players = names.map((name, i) => ({
+      id: i+1,
+      name: name || `Player ${i+1}`,
+      score: 0,
+      hand: [],
+      color: avatarColors[i]
+    }));
+  } else {
+    state.players = Array.from({length: state.playerCount}, (_,i) => ({
+      id: i+1,
+      name: `Player ${i+1}`,
+      score: 0,
+      hand: [],
+      color: avatarColors[i]
+    }));
+  }
+  
   shuffle(state.responses);
   // deal 7 each
   for(let p of state.players){
     for(let i=0;i<7;i++) p.hand.push(drawResponse());
   }
   state.judgeIndex = 0; state.playIndex = 0; state.played = [];
-  $('setup').classList.add('hidden'); $('game').classList.remove('hidden');
+  $('setup').classList.add('hidden');
+  $('playerSetup').classList.add('hidden');
+  $('game').classList.remove('hidden');
   nextRound();
 }
 
@@ -75,14 +161,19 @@ function nextRound(){
 
 function renderRound(){
   $('scenarioText').textContent = fillBlanks(state.currentScenario);
-  $('roundInfo').textContent = `Judge: Player ${state.judgeIndex+1}`;
+  const judge = state.players[state.judgeIndex];
+  $('roundInfo').textContent = `Judge: ${judge.name}`;
   renderScoreboard();
   startPlayTurn();
 }
 
 function renderScoreboard(){
   const sb = $('scoreboard'); sb.innerHTML='';
-  state.players.forEach(p=>{const d=document.createElement('div');d.className='score';d.textContent=`P${p.id}: ${p.score}`;sb.appendChild(d)});
+  state.players.forEach(p=>{
+    const d=document.createElement('div');d.className='score';
+    d.innerHTML = `<span style="display:inline-block;width:16px;height:16px;background:${p.color};border-radius:50%;margin-right:8px;vertical-align:middle;"></span>${p.name}: ${p.score}`;
+    sb.appendChild(d);
+  });
 }
 
 function startPlayTurn(){
@@ -95,7 +186,7 @@ function startPlayTurn(){
   let idx = (state.judgeIndex + 1 + state.playIndex) % state.players.length;
   const player = state.players[idx];
   const blanksNeeded = countBlanks(state.currentScenario);
-  $('turnLabel').textContent = `Player ${player.id}'s turn to play (select ${blanksNeeded} card${blanksNeeded>1?'s':''})`;
+  $('turnLabel').textContent = `${player.name}'s turn to play (select ${blanksNeeded} card${blanksNeeded>1?'s':''})`;
   const hand = $('hand'); 
   hand.innerHTML='';
   
@@ -106,6 +197,7 @@ function startPlayTurn(){
     const el=document.createElement('div');el.className='card';el.textContent=card;
     cardEls[i] = el;
     el.onclick=()=>{ 
+      playSound('select');
       if(selectedCards.includes(i)){
         selectedCards = selectedCards.filter(x => x !== i);
         el.classList.remove('selected');
@@ -176,7 +268,7 @@ function showPassToNext(){
     const nextPlayer = state.players[nextIdx];
     $('playerTurn').classList.add('hidden');
     $('playedArea').classList.add('hidden');
-    $('roundInfo').textContent = `Player ${nextPlayer.id}, it's your turn! Tap "Ready" when you have the device.`;
+    $('roundInfo').textContent = `${nextPlayer.name}, it's your turn! Tap "Ready" when you have the device.`;
     $('nextTurnBtn').textContent = 'Ready';
     $('nextTurnBtn').classList.remove('hidden');
     $('nextTurnBtn').onclick = () => startPlayTurn();
@@ -186,6 +278,7 @@ function showPassToNext(){
 }
 
 function showPlayedForJudge(){
+  playSound('reveal');
   $('playerTurn').classList.add('hidden');
   $('playedArea').classList.remove('hidden');
   const pc = $('playedCards'); pc.innerHTML='';
@@ -200,6 +293,7 @@ function showPlayedForJudge(){
 }
 
 function judgePick(play){
+  playSound('ding');
   // award point
   state.players[play.player].score++;
   // move played to discard
@@ -214,7 +308,12 @@ function judgePick(play){
 
 document.addEventListener('DOMContentLoaded',async()=>{
   await loadCards();
-  $('startBtn').onclick=startGame;
+  $('startBtn').onclick=showPlayerSetup;
+  $('startGameBtn').onclick=()=>{
+    const names = Array.from($('playerInputs').querySelectorAll('input')).map(inp => inp.value.trim());
+    initializeGame(names);
+  };
+  $('skipNamesBtn').onclick=()=>{ initializeGame(null); };
   $('nextTurnBtn').onclick=()=>{ startPlayTurn(); };
   $('judgePickBtn').onclick=()=>{ /* revealed already clickable */ };
   $('nextRoundBtn').onclick=()=>{ nextRound(); $('nextRoundBtn').classList.add('hidden'); };
