@@ -13,6 +13,27 @@ let state = {
 
 const $ = id => document.getElementById(id);
 
+// Simple on-page debug logger so we can see errors in the browser without devtools
+function debugLog(msg){
+  try{
+    let d = document.getElementById('debugLog');
+    if(!d){
+      d = document.createElement('div'); d.id = 'debugLog';
+      d.style.cssText = 'position:fixed;right:12px;bottom:12px;max-width:320px;max-height:200px;overflow:auto;background:rgba(0,0,0,0.7);color:#fff;padding:8px;border-radius:6px;font-size:12px;z-index:9999';
+      document.body.appendChild(d);
+    }
+    const p = document.createElement('div'); p.textContent = (new Date()).toLocaleTimeString() + ' — ' + msg; d.appendChild(p); d.scrollTop = d.scrollHeight;
+  }catch(e){ /* ignore */ }
+}
+
+// surface runtime errors to the page for easier debugging
+window.addEventListener('error', (ev)=>{
+  debugLog('Error: ' + (ev && ev.message) + ' at ' + (ev && ev.filename) + ':' + (ev && ev.lineno));
+});
+window.addEventListener('unhandledrejection', (ev)=>{
+  debugLog('UnhandledRejection: ' + (ev && ev.reason && ev.reason.toString()));
+});
+
 // Avatar colors for players
 const avatarColors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6', '#f97316', '#6b7280', '#a16207', '#7c3aed'];
 
@@ -51,11 +72,16 @@ function playSound(type = 'select'){
 }
 
 async function loadCards(){
-  const res = await fetch('data/cards.json');
-  const data = await res.json();
-  // `data/cards.json` contains top-level category objects (basic, edgier, etc.).
-  // Assign the parsed object directly so `loadCategory()` can access keys like 'basic'.
-  state.categoryData = data;
+  try{
+    const res = await fetch('data/cards.json');
+    if(!res.ok) throw new Error('HTTP '+res.status+' fetching cards.json');
+    const data = await res.json();
+    state.categoryData = data;
+    debugLog('Loaded cards.json — categories: ' + Object.keys(data).join(','));
+  }catch(err){
+    debugLog('loadCards error: ' + err.message);
+    throw err;
+  }
 }
 
 function loadCategory(cat){
@@ -310,7 +336,12 @@ function judgePick(play){
 
 document.addEventListener('DOMContentLoaded',async()=>{
   await loadCards();
-  $('startBtn').onclick=showPlayerSetup;
+  // Attach Start click handler and log for debugging
+  try{
+    const start = $('startBtn');
+    if(start){ start.onclick = showPlayerSetup; debugLog('startBtn handler attached'); }
+    else debugLog('startBtn not found');
+  }catch(e){ debugLog('attach startBtn error: '+e.message); }
   $('startGameBtn').onclick=()=>{
     const names = Array.from($('playerInputs').querySelectorAll('input')).map(inp => inp.value.trim());
     initializeGame(names);
