@@ -53,7 +53,9 @@ function playSound(type = 'select'){
 async function loadCards(){
   const res = await fetch('data/cards.json');
   const data = await res.json();
-  state.categoryData = data.categories;
+  // `data/cards.json` contains top-level category objects (basic, edgier, etc.).
+  // Assign the parsed object directly so `loadCategory()` can access keys like 'basic'.
+  state.categoryData = data;
 }
 
 function loadCategory(cat){
