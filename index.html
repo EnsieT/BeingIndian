@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Scenario & Response — Party Game</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <main class="container">
+    <h1>Scenario & Response</h1>
+
+    <section id="setup">
+      <label>Players: <input id="playerCount" type="number" min="3" max="12" value="4"></label>
+      <button id="startBtn">Start Game</button>
+    </section>
+
+    <section id="game" class="hidden">
+      <div id="meta">
+        <div id="roundInfo"></div>
+        <div id="scoreboard"></div>
+      </div>
+
+      <div id="scenarioArea">
+        <h2>Scenario</h2>
+        <p id="scenarioText">—</p>
+      </div>
+
+      <div id="playArea">
+        <div id="playerTurn" class="cardBox">
+          <h3 id="turnLabel">Player 1's turn to play</h3>
+          <div id="hand"></div>
+        </div>
+
+        <div id="playedArea" class="cardBox hidden">
+          <h3>Played responses (anonymous)</h3>
+          <div id="playedCards"></div>
+        </div>
+      </div>
+
+      <div id="controls">
+        <button id="nextTurnBtn" class="hidden">Next Player</button>
+        <button id="judgePickBtn" class="hidden">Reveal for Judge</button>
+        <button id="nextRoundBtn" class="hidden">Next Round</button>
+      </div>
+    </section>
+
+    <footer>
+      <small>Hot-seat web implementation — host on GitHub Pages to play online.</small>
+    </footer>
+  </main>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
