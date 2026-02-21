@@ -92,15 +92,21 @@ function loadCategory(cat){
     const m = (s||'').match(/_____/g);
     return m ? m.length : 0;
   }
-  const singleBlank = catData.scenarios.filter(s => countBlanksExact(s) === 1);
-  if(singleBlank.length > 0){
-    state.scenarios = singleBlank.slice();
-    debugLog(`Loaded ${state.scenarios.length} single-blank scenarios for ${cat}`);
-  } else {
-    // fallback: load all scenarios if no single-blank ones exist
-    state.scenarios = catData.scenarios.slice();
-    debugLog(`No single-blank scenarios in ${cat}; loaded ${state.scenarios.length} scenarios (fallback)`);
-  }
+  // Transform any multi-blank scenarios into single-blank forms by keeping
+  // content up to the first blank and preserving trailing text after the last blank.
+  const transformed = catData.scenarios.map(s => {
+    const cnt = countBlanksExact(s);
+    if(cnt <= 1) return s;
+    const first = s.indexOf('_____');
+    const last = s.lastIndexOf('_____');
+    const head = s.slice(0, first + 5); // include first blank
+    const tail = s.slice(last + 5); // keep trailing punctuation/text after last blank
+    const merged = (head + tail).replace(/\s+/g,' ').replace(/\s+\./g,'.').trim();
+    return merged;
+  });
+  // keep only scenarios that now contain exactly one blank
+  state.scenarios = transformed.filter(s => countBlanksExact(s) === 1);
+  debugLog(`Loaded ${state.scenarios.length} single-blank scenarios for ${cat} (transformed)`);
   state.responses = catData.responses.slice();
 }
 
