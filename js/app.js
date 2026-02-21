@@ -110,20 +110,27 @@ function startPlayTurn(){
         selectedCards.push(i);
         el.classList.add('selected');
       }
+      // for single blank, auto-play when card selected
+      if(blanksNeeded === 1 && selectedCards.length === 1){
+        playCard(idx, selectedCards[0]);
+        return;
+      }
     };
     hand.appendChild(el);
   });
   
-  // create a "submit selection" button
-  const submitBtn = document.createElement('button');
-  submitBtn.textContent = `Play ${blanksNeeded} card${blanksNeeded>1?'s':''}`;
-  submitBtn.style.marginTop = '12px';
-  submitBtn.onclick = () => {
-    if(selectedCards.length === blanksNeeded){
-      playCard(idx, selectedCards.slice());
-    }
-  };
-  hand.parentElement.appendChild(submitBtn);
+  // only show play button for multi-card scenarios
+  if(blanksNeeded > 1){
+    const submitBtn = document.createElement('button');
+    submitBtn.textContent = `Play ${blanksNeeded} cards`;
+    submitBtn.style.marginTop = '12px';
+    submitBtn.onclick = () => {
+      if(selectedCards.length === blanksNeeded){
+        playCard(idx, selectedCards.slice());
+      }
+    };
+    hand.parentElement.appendChild(submitBtn);
+  }
   
   $('playerTurn').classList.remove('hidden'); $('playedArea').classList.add('hidden');
   $('nextTurnBtn').classList.add('hidden'); $('judgePickBtn').classList.add('hidden'); $('nextRoundBtn').classList.add('hidden');
