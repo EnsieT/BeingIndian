@@ -220,7 +220,7 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
 }
 
 #playedArea .card {
-  animation: flipIn 0.6s ease-out;
+  animation: flipIn 0.6s ease-out forwards;
 }
 
 @keyframes flipIn {
