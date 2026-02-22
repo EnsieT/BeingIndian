@@ -353,7 +353,7 @@ function judgePick(play, cardElement){
   if (cardElement) {
     cardElement.classList.add('winner');
   }
-   // Disable further clicks
+  // Disable further clicks
   const playedCards = $('playedCards').querySelectorAll('.card');
   playedCards.forEach(card => card.onclick = null);
 
@@ -366,7 +366,9 @@ function judgePick(play, cardElement){
   // advance judge
   state.judgeIndex = (state.judgeIndex+1) % state.players.length;
   renderScoreboard();
-  $('judgePickBtn').classList.add('hidden'); 
+  $('judgePickBtn').classList.add('hidden');
+  // Keep playedArea visible to see the winning card
+  $('playedArea').classList.remove('hidden');
   // Delay showing next round to allow animation to play
   setTimeout(() => {
     $('nextRoundBtn').classList.remove('hidden');
