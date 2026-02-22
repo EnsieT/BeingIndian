@@ -214,6 +214,11 @@ function renderRound(){
   $('scenarioText').textContent = fillBlanks(state.currentScenario);
   const judge = state.players[state.judgeIndex];
   $('roundInfo').textContent = `Judge: ${judge.name}`;
+  // Display category
+  const categoryData = state.categoryData[state.category];
+  if (categoryData && $('categoryBadge')) {
+    $('categoryBadge').textContent = categoryData.name;
+  }
   renderScoreboard();
   startPlayTurn();
 }
