@@ -131,7 +131,7 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
   font-size: 1.3rem;
   margin: 0;
   font-weight: 600;
-  color: var(--accent-light);
+  color: #000;
   line-height: 1.6;
 }
 
