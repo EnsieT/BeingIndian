@@ -20,7 +20,9 @@
           <option value="millennial30s">Millennial 30s (Adulting Crisis)</option>
           <option value="millennial40s">Millennial 40s (Mid-life Realizations)</option>
           <option value="superEdgy">Super Edgy (Go Bonkers)</option>
+          <option value="custom">Custom Deck</option>
         </select>
+        <button id="showDeckEditorBtn" class="secondary" style="margin-left: 8px;">Deck Editor</button>
       </div>
       <div>
         <label for="playerCount">Players:</label>
@@ -39,6 +41,29 @@
       <div id="playerInputs"></div>
       <button id="startGameBtn">Start Game</button>
       <button id="skipNamesBtn" class="secondary">Skip & Use Defaults</button>
+    </section>
+
+    <section id="deckEditor" class="hidden">
+      <h2>Deck Editor</h2>
+      <div class="deck-editor-columns">
+        <div>
+          <h3>Scenarios (one per line)</h3>
+          <textarea id="scenarioInput" rows="10" placeholder="e.g., Why am I single? _____"></textarea>
+        </div>
+        <div>
+          <h3>Responses (one per line)</h3>
+          <textarea id="responseInput" rows="10" placeholder="e.g., A crippling fear of commitment."></textarea>
+        </div>
+      </div>
+      <div id="shareLink" class="hidden" style="margin-top: 1rem;">
+        <p>Share this link with your friends to use this deck:</p>
+        <input type="text" id="shareUrl" readonly style="width: 100%;">
+      </div>
+      <div style="margin-top: 1rem;">
+        <button id="saveDeckBtn">Save & Close</button>
+        <button id="shareDeckBtn" class="secondary">Share Deck</button>
+        <button id="closeDeckEditorBtn" class="secondary">Close</button>
+      </div>
     </section>
 
     <section id="game" class="hidden">

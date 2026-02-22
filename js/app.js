@@ -86,6 +86,10 @@ async function loadCards(){
 
 function loadCategory(cat){
   state.category = cat;
+  if (cat === 'custom') {
+    loadCustomDeck();
+    return;
+  }
   const catData = state.categoryData[cat];
   // Prefer scenarios that contain exactly one blank (single-blank scenarios)
   function countBlanksExact(s){
@@ -216,8 +220,12 @@ function renderRound(){
 
 function renderScoreboard(){
   const sb = $('scoreboard'); sb.innerHTML='';
-  state.players.forEach(p=>{
-    const d=document.createElement('div');d.className='score';
+  state.players.forEach((p, i)=>{
+    const d=document.createElement('div');
+    d.className='score';
+    if (i === state.judgeIndex) {
+      d.classList.add('judge');
+    }
     d.innerHTML = `<span style="display:inline-block;width:16px;height:16px;background:${p.color};border-radius:50%;margin-right:8px;vertical-align:middle;"></span>${p.name}: ${p.score}`;
     sb.appendChild(d);
   });
@@ -333,25 +341,36 @@ function showPlayedForJudge(){
   const shuffled = state.played.slice(); shuffle(shuffled);
   shuffled.forEach((p,i)=>{
     const el=document.createElement('div');el.className='card';el.textContent=p.card;
-    el.onclick=()=>judgePick(p);
+    el.onclick=(evt)=>judgePick(p, evt.target);
     pc.appendChild(el);
   });
   $('nextTurnBtn').classList.add('hidden'); $('judgePickBtn').classList.remove('hidden');
 }
 
-function judgePick(play){
+function judgePick(play, cardElement){
   playSound('ding');
+  // Highlight the winning card
+  if (cardElement) {
+    cardElement.classList.add('winner');
+  }
+   // Disable further clicks
+  const playedCards = $('playedCards').querySelectorAll('.card');
+  playedCards.forEach(card => card.onclick = null);
+
   // award point
   state.players[play.player].score++;
   // move played to discard
   state.played.forEach(p=>state.discard.push(p.card));
-  // refill hands to 7
   // refill hands to 10
   state.players.forEach(p=>{while(p.hand.length<10) p.hand.push(drawResponse())});
   // advance judge
   state.judgeIndex = (state.judgeIndex+1) % state.players.length;
   renderScoreboard();
-  $('judgePickBtn').classList.add('hidden'); $('nextRoundBtn').classList.remove('hidden');
+  $('judgePickBtn').classList.add('hidden'); 
+  // Delay showing next round to allow animation to play
+  setTimeout(() => {
+    $('nextRoundBtn').classList.remove('hidden');
+  }, 1200);
 }
 
 function resetGame(){
@@ -383,8 +402,84 @@ function resetGame(){
   loadCards().then(()=> debugLog('Cards reloaded after reset')).catch(e=>debugLog('reload error: '+(e&&e.message)));
 }
 
+
+function showDeckEditor() {
+  $('deckEditor').classList.remove('hidden');
+  $('setup').classList.add('hidden');
+  // Load existing custom deck from localStorage
+  const customDeck = JSON.parse(localStorage.getItem('customDeck') || '{}');
+  if (customDeck.scenarios) {
+    $('scenarioInput').value = customDeck.scenarios.join('\n');
+  }
+  if (customDeck.responses) {
+    $('responseInput').value = customDeck.responses.join('\n');
+  }
+}
+
+function closeDeckEditor() {
+  $('deckEditor').classList.add('hidden');
+  $('setup').classList.remove('hidden');
+  $('shareLink').classList.add('hidden');
+}
+
+function saveCustomDeck() {
+  const scenarios = $('scenarioInput').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const responses = $('responseInput').value.split('\n').map(r => r.trim()).filter(Boolean);
+  const customDeck = { scenarios, responses };
+  localStorage.setItem('customDeck', JSON.stringify(customDeck));
+  debugLog('Custom deck saved to localStorage.');
+  closeDeckEditor();
+}
+
+function shareCustomDeck() {
+  const customDeck = localStorage.getItem('customDeck');
+  if (!customDeck) {
+    alert('Please save a custom deck first!');
+    return;
+  }
+  const encodedDeck = btoa(customDeck);
+  const url = new URL(window.location.href);
+  url.searchParams.set('deck', encodedDeck);
+  $('shareUrl').value = url.href;
+  $('shareLink').classList.remove('hidden');
+  debugLog('Generated shareable URL.');
+}
+
+function loadCustomDeck() {
+  const customDeck = JSON.parse(localStorage.getItem('customDeck') || '{}');
+  if (customDeck.scenarios && customDeck.responses) {
+    state.scenarios = customDeck.scenarios.slice();
+    state.responses = customDeck.responses.slice();
+    debugLog(`Loaded custom deck with ${state.scenarios.length} scenarios and ${state.responses.length} responses.`);
+  } else {
+    debugLog('No custom deck found in localStorage.');
+    // Provide some default cards if the custom deck is empty
+    state.scenarios = ['Why is the sky blue?', 'What is love?'];
+    state.responses = ['Baby don\'t hurt me', 'A miserable pile of secrets'];
+  }
+}
+
+function loadDeckFromURL() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const encodedDeck = urlParams.get('deck');
+  if (encodedDeck) {
+    try {
+      const decodedDeck = atob(encodedDeck);
+      JSON.parse(decodedDeck); // Validate JSON
+      localStorage.setItem('customDeck', decodedDeck);
+      $('categorySelect').value = 'custom';
+      debugLog('Loaded deck from URL and set category to custom.');
+    } catch (e) {
+      debugLog('Failed to load deck from URL: ' + e.message);
+      alert('The shared deck link appears to be invalid.');
+    }
+  }
+}
+
+
 document.addEventListener('DOMContentLoaded',async()=>{
   await loadCards();
+  loadDeckFromURL();
   // Attach Start click handler and log for debugging
   try{
     const start = $('startBtn');
@@ -400,4 +495,9 @@ document.addEventListener('DOMContentLoaded',async()=>{
   $('nextTurnBtn').onclick=()=>{ startPlayTurn(); };
   $('judgePickBtn').onclick=()=>{ /* revealed already clickable */ };
   $('nextRoundBtn').onclick=()=>{ nextRound(); $('nextRoundBtn').classList.add('hidden'); };
+
+  $('showDeckEditorBtn').onclick = showDeckEditor;
+  $('closeDeckEditorBtn').onclick = closeDeckEditor;
+  $('saveDeckBtn').onclick = saveCustomDeck;
+  $('shareDeckBtn').onclick = shareCustomDeck;
 });
