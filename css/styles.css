@@ -26,7 +26,37 @@ body {
   margin: 0 auto;
   padding: 20px;
 }
-
+@media (max-width: 768px) {
+  .container {
+    padding: 12px;
+    max-width: 100%;
+  }
+  h1 {
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+  #setup, #playerSetup, #deckEditor {
+    padding: 12px;
+  }
+  #setup {
+    grid-template-columns: 1fr;
+  }
+  #setup > div {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  #setup > button, #showDeckEditorBtn {
+    grid-column: 1;
+    grid-row: auto;
+    width: 100%;
+    margin-left: 0;
+    margin-top: 8px;
+  }
+  select, input[type="number"], input[type="text"] {
+    max-width: 100%;
+    width: 100%;
+  }
+}
 h1 {
   text-align: center;
   margin: 0 0 20px 0;
@@ -136,6 +166,13 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
   align-items: center;
 }
 
+@media (max-width: 768px) {
+  #meta {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+}
+
 #roundInfo {
   background: var(--accent);
   padding: 12px 20px;
@@ -143,6 +180,13 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
   font-weight: 700;
   color: #fff;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+}
+
+@media (max-width: 768px) {
+  #roundInfo {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
 }
 
 #scenarioArea {
@@ -153,6 +197,13 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
   border-radius: 8px;
 }
 
+@media (max-width: 768px) {
+  #scenarioArea {
+    margin: 12px 0;
+    padding: 16px;
+  }
+}
+
 #scenarioText {
   font-size: 1.3rem;
   margin: 0;
@@ -161,11 +212,24 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
   line-height: 1.6;
 }
 
+@media (max-width: 768px) {
+  #scenarioText {
+    font-size: 1.1rem;
+  }
+}
+
 #hand {
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
   perspective: 1000px;
+}
+
+@media (max-width: 768px) {
+  #hand {
+    gap: 10px;
+    justify-content: center;
+  }
 }
 
 .card {
@@ -185,6 +249,14 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
   transform-style: preserve-3d;
   animation: dealCard 0.5s ease-out forwards;
   opacity: 0;
+}
+
+@media (max-width: 768px) {
+  .card {
+    min-width: 120px;
+    padding: 10px;
+    font-size: 13px;
+  }
 }
 
 @keyframes dealCard {
@@ -295,6 +367,16 @@ button {
   font-size: 14px;
   transition: all 0.3s;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+  min-height: 44px;
+}
+
+@media (max-width: 768px) {
+  button {
+    padding: 10px 16px;
+    min-height: 40px;
+    font-size: 13px;
+    width: 100%;
+  }
 }
 
 button:hover {
@@ -364,6 +446,18 @@ input[type="checkbox"] {
   gap: 12px;
   justify-content: center;
   flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  #controls {
+    margin-top: 16px;
+    gap: 8px;
+  }
+  #controls button {
+    flex: 1;
+    min-width: 100px;
+    width: auto;
+  }
 }
 
 #scoreboard {

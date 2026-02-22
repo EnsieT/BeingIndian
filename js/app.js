@@ -14,7 +14,10 @@ let state = {
 const $ = id => document.getElementById(id);
 
 // Simple on-page debug logger so we can see errors in the browser without devtools
+// Set DEBUG_MODE to true to enable error display
+const DEBUG_MODE = false;
 function debugLog(msg){
+  if(!DEBUG_MODE) return; // Error messages disabled
   try{
     let d = document.getElementById('debugLog');
     if(!d){
