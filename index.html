@@ -20,6 +20,8 @@
           <option value="millennial30s">Millennial 30s (Adulting Crisis)</option>
           <option value="millennial40s">Millennial 40s (Mid-life Realizations)</option>
           <option value="superEdgy">Super Edgy (Go Bonkers)</option>
+          <option value="genz">Gen Z (Unhinged & Online)</option>
+          <option value="dark">Dark (Morbid Humor)</option>
           <option value="custom">Custom Deck</option>
         </select>
         <button id="showDeckEditorBtn" class="secondary" style="margin-left: 8px;">Deck Editor</button>
@@ -82,6 +84,7 @@
         <div id="playerTurn" class="cardBox">
           <h3 id="turnLabel">Player 1's turn to play</h3>
           <div id="hand"></div>
+          <button id="shuffleBtn" class="shuffle-btn">🔀 Shuffle (-1 pt)</button>
         </div>
 
         <div id="playedArea" class="cardBox hidden">
@@ -92,11 +95,27 @@
 
       <div id="controls">
         <button id="nextTurnBtn" class="hidden">Next Player</button>
-        <button id="judgePickBtn" class="hidden">Reveal for Judge</button>
+        <div id="judgeInstruction" class="hidden judge-instruction">👆 Tap the winning response above!</div>
         <button id="nextRoundBtn" class="hidden">Next Round</button>
         <button id="resetBtn" class="secondary">Reset</button>
       </div>
     </section>
+
+    <div id="trumpModal" class="hidden modal-overlay">
+      <div class="modal">
+        <h2>Trump Card - Write Your Response</h2>
+        <p>This is a Trump card! Write your own creative response for this scenario:</p>
+        <p id="trumpScenario" style="font-weight: bold; color: var(--accent); margin: 16px 0;"></p>
+        <textarea id="trumpResponse" placeholder="Enter your witty response here..." maxlength="200" style="width: 100%; padding: 12px; border: 2px solid var(--accent); border-radius: 8px; font-size: 14px; resize: vertical; min-height: 100px;"></textarea>
+        <div style="margin-top: 16px; color: var(--muted); font-size: 12px;">
+          Note: Your response is temporary and won't be saved for later rounds.
+        </div>
+        <div style="display: flex; gap: 12px; margin-top: 20px;">
+          <button id="submitTrumpBtn" style="flex: 1;">Submit Response</button>
+          <button id="cancelTrumpBtn" class="secondary" style="flex: 1;">Cancel</button>
+        </div>
+      </div>
+    </div>
 
     <footer>
       <small>Hot-seat web implementation — host on GitHub Pages to play online.</small>

@@ -540,3 +540,102 @@ h3 {
   color: var(--text);
   margin: 0 0 12px 0;
 }
+
+/* Trump Card Styles */
+.card.trump-card {
+  background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
+  border: 3px solid #f59e0b;
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+}
+
+.card.trump-card:hover {
+  border-color: #dc2626;
+  box-shadow: 0 0 25px rgba(220, 38, 38, 0.7);
+  transform: translateY(-8px) scale(1.05);
+}
+
+.card.trump-card.selected {
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  border-color: #7c2d12;
+  color: #fef3c7;
+  box-shadow: 0 0 30px rgba(220, 38, 38, 0.9);
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal {
+  background: var(--card);
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  animation: slideDown 0.3s ease-out;
+}
+
+.modal h2 {
+  margin-top: 0;
+  color: #f59e0b;
+  text-align: center;
+}
+
+.modal p {
+  color: var(--text);
+  line-height: 1.6;
+  margin: 12px 0;
+}
+
+.modal-overlay.hidden {
+  display: none !important;
+}
+
+#shuffleBtn {
+  background: linear-gradient(135deg, #f59e0b 0%, #dc2626 100%);
+  display: block;
+  margin: 16px auto 0;
+  padding: 6px 16px;
+  font-size: 12px;
+  min-height: 32px;
+  width: auto;
+  opacity: 0.8;
+}
+
+#shuffleBtn:hover {
+  opacity: 1;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.judge-instruction {
+  background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
+  color: #78350f;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-align: center;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.6); }
+}
+
+@media (max-width: 768px) {
+  .modal {
+    padding: 20px;
+  }
+}

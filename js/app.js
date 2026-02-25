@@ -8,7 +8,10 @@ let state = {
   playIndex: 0,
   played: [],
   category: 'basic',
-  playerCount: 4
+  playerCount: 4,
+  currentPlayerTurns: null, // track which player is currently playing for Trump card modal
+  trumpCardPlayerIdx: null, // track player who selected Trump card
+  trumpCardIndex: null // track which card index is the Trump card
 };
 
 const $ = id => document.getElementById(id);
@@ -123,6 +126,69 @@ function shuffle(arr){
   }
 }
 
+function isTrumpCard(cardText){
+  return cardText && cardText.startsWith('TRUMP:');
+}
+
+function getTrumpCardDisplay(cardText){
+  return cardText.replace(/^TRUMP:\s*/, '').trim();
+}
+
+function showTrumpModal(scenario, playerIdx, cardIdx){
+  state.trumpCardPlayerIdx = playerIdx;
+  state.trumpCardIndex = cardIdx;
+  $('trumpScenario').textContent = fillBlanks(scenario);
+  $('trumpResponse').value = '';
+  $('trumpModal').classList.remove('hidden');
+  $('trumpResponse').focus();
+}
+
+function closeTrumpModal(){
+  $('trumpModal').classList.add('hidden');
+  state.trumpCardPlayerIdx = null;
+  state.trumpCardIndex = null;
+}
+
+function submitTrumpResponse(){
+  const customResponse = $('trumpResponse').value.trim();
+  if(!customResponse){
+    alert('Please write a response before submitting!');
+    return;
+  }
+  
+  const playerIdx = state.trumpCardPlayerIdx;
+  const player = state.players[playerIdx];
+  
+  // Replace the Trump card with the custom response in the player's hand
+  player.hand[state.trumpCardIndex] = customResponse;
+  
+  closeTrumpModal();
+  
+  // Auto-play single-card Trump response
+  playCard(playerIdx, state.trumpCardIndex);
+}
+
+function shuffleHand(){
+  // Check if we have a current player
+  let idx = (state.judgeIndex + 1 + state.playIndex) % state.players.length;
+  const player = state.players[idx];
+  
+  // Deduct 1 point
+  player.score = Math.max(0, player.score - 1);
+  
+  // Return all cards to discard and draw new ones
+  player.hand.forEach(card => state.discard.push(card));
+  player.hand = [];
+  for(let i=0; i<10; i++){
+    player.hand.push(drawResponse());
+  }
+  
+  playSound('select');
+  renderScoreboard();
+  startPlayTurn();
+}
+
+
 function fillBlanks(scenario){
   // if scenario has blanks (_____ pattern), return as-is for display
   return scenario;
@@ -187,6 +253,7 @@ function initializeGame(names){
     }));
   }
   
+  shuffle(state.scenarios);
   shuffle(state.responses);
   // deal 10 each
   for(let p of state.players){
@@ -202,6 +269,10 @@ function initializeGame(names){
 function drawResponse(){
   if(state.responses.length===0){
     state.responses = state.discard.slice(); state.discard = []; shuffle(state.responses);
+  }
+  if(state.responses.length===0){
+    // Pool completely empty — give a wild card so the player can still play
+    return 'TRUMP: ✍️ Wild Card — Write your own!';
   }
   return state.responses.pop();
 }
@@ -257,10 +328,28 @@ function startPlayTurn(){
   const cardEls = [];
   
   player.hand.forEach((card,i)=>{
-    const el=document.createElement('div');el.className='card';el.textContent=card;
+    const el=document.createElement('div');
+    el.className='card';
+    
+    // Check if this is a Trump card and apply special styling
+    const isTrump = isTrumpCard(card);
+    if(isTrump){
+      el.classList.add('trump-card');
+      el.textContent = getTrumpCardDisplay(card);
+    } else {
+      el.textContent = card;
+    }
+    
     cardEls[i] = el;
     el.onclick=()=>{ 
       playSound('select');
+      
+      // Handle Trump card - show modal instead of auto-playing
+      if(isTrump){
+        showTrumpModal(state.currentScenario, idx, i);
+        return;
+      }
+      
       if(selectedCards.includes(i)){
         selectedCards = selectedCards.filter(x => x !== i);
         el.classList.remove('selected');
@@ -293,7 +382,7 @@ function startPlayTurn(){
   }
   
   $('playerTurn').classList.remove('hidden'); $('playedArea').classList.add('hidden');
-  $('nextTurnBtn').classList.add('hidden'); $('judgePickBtn').classList.add('hidden'); $('nextRoundBtn').classList.add('hidden');
+  $('nextTurnBtn').classList.add('hidden'); $('judgeInstruction').classList.add('hidden'); $('nextRoundBtn').classList.add('hidden');
 }
 
 function playCard(playerIdx, indicesOrIndex){
@@ -335,7 +424,7 @@ function showPassToNext(){
     $('nextTurnBtn').textContent = 'Ready';
     $('nextTurnBtn').classList.remove('hidden');
     $('nextTurnBtn').onclick = () => startPlayTurn();
-    $('judgePickBtn').classList.add('hidden');
+    $('judgeInstruction').classList.add('hidden');
     $('nextRoundBtn').classList.add('hidden');
   }
 }
@@ -344,15 +433,19 @@ function showPlayedForJudge(){
   playSound('reveal');
   $('playerTurn').classList.add('hidden');
   $('playedArea').classList.remove('hidden');
+  const judge = state.players[state.judgeIndex];
+  $('roundInfo').textContent = `${judge.name} is judging!`;
   const pc = $('playedCards'); pc.innerHTML='';
   // shuffle anonymous presentation
   const shuffled = state.played.slice(); shuffle(shuffled);
   shuffled.forEach((p,i)=>{
-    const el=document.createElement('div');el.className='card';el.textContent=p.card;
+    const el=document.createElement('div');el.className='card';
+    // Display the card normally - Trump cards will already have custom responses stored
+    el.textContent=p.card;
     el.onclick=(evt)=>judgePick(p, evt.target);
     pc.appendChild(el);
   });
-  $('nextTurnBtn').classList.add('hidden'); $('judgePickBtn').classList.remove('hidden');
+  $('nextTurnBtn').classList.add('hidden'); $('judgeInstruction').classList.remove('hidden');
 }
 
 function judgePick(play, cardElement){
@@ -374,7 +467,7 @@ function judgePick(play, cardElement){
   // advance judge
   state.judgeIndex = (state.judgeIndex+1) % state.players.length;
   renderScoreboard();
-  $('judgePickBtn').classList.add('hidden');
+  $('judgeInstruction').classList.add('hidden');
   // Keep playedArea visible to see the winning card
   $('playedArea').classList.remove('hidden');
   // Delay showing next round to allow animation to play
@@ -395,6 +488,9 @@ function resetGame(){
   state.played = [];
   state.category = 'basic';
   state.playerCount = 4;
+  state.currentPlayerTurns = null;
+  state.trumpCardPlayerIdx = null;
+  state.trumpCardIndex = null;
 
   // reset UI
   if($('game')) $('game').classList.add('hidden');
@@ -407,6 +503,7 @@ function resetGame(){
   if($('scenarioText')) $('scenarioText').textContent = '—';
   if($('roundInfo')) $('roundInfo').textContent = '';
   if($('scoreboard')) $('scoreboard').innerHTML = '';
+  if($('trumpModal')) closeTrumpModal();
 
   // reload cards data
   loadCards().then(()=> debugLog('Cards reloaded after reset')).catch(e=>debugLog('reload error: '+(e&&e.message)));
@@ -503,11 +600,24 @@ document.addEventListener('DOMContentLoaded',async()=>{
   };
   $('skipNamesBtn').onclick=()=>{ initializeGame(null); };
   $('nextTurnBtn').onclick=()=>{ startPlayTurn(); };
-  $('judgePickBtn').onclick=()=>{ /* revealed already clickable */ };
   $('nextRoundBtn').onclick=()=>{ nextRound(); $('nextRoundBtn').classList.add('hidden'); };
 
   $('showDeckEditorBtn').onclick = showDeckEditor;
   $('closeDeckEditorBtn').onclick = closeDeckEditor;
   $('saveDeckBtn').onclick = saveCustomDeck;
   $('shareDeckBtn').onclick = shareCustomDeck;
+  
+  // Trump card modal handlers
+  $('submitTrumpBtn').onclick = submitTrumpResponse;
+  $('cancelTrumpBtn').onclick = closeTrumpModal;
+  // Allow Enter key in textarea to submit (Shift+Enter for new line)
+  $('trumpResponse').addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter' && !e.shiftKey){
+      e.preventDefault();
+      submitTrumpResponse();
+    }
+  });
+  
+  // Shuffle button handler
+  $('shuffleBtn').onclick = shuffleHand;
 });
