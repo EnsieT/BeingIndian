@@ -22,9 +22,7 @@
           <option value="superEdgy">Super Edgy (Go Bonkers)</option>
           <option value="genz">Gen Z (Unhinged & Online)</option>
           <option value="dark">Dark (Morbid Humor)</option>
-          <option value="custom">Custom Deck</option>
         </select>
-        <button id="showDeckEditorBtn" class="secondary" style="margin-left: 8px;">Deck Editor</button>
       </div>
       <div>
         <label for="playerCount">Players:</label>
@@ -45,28 +43,7 @@
       <button id="skipNamesBtn" class="secondary">Skip & Use Defaults</button>
     </section>
 
-    <section id="deckEditor" class="hidden">
-      <h2>Deck Editor</h2>
-      <div class="deck-editor-columns">
-        <div>
-          <h3>Scenarios (one per line)</h3>
-          <textarea id="scenarioInput" rows="10" placeholder="e.g., Why am I single? _____"></textarea>
-        </div>
-        <div>
-          <h3>Responses (one per line)</h3>
-          <textarea id="responseInput" rows="10" placeholder="e.g., A crippling fear of commitment."></textarea>
-        </div>
-      </div>
-      <div id="shareLink" class="hidden" style="margin-top: 1rem;">
-        <p>Share this link with your friends to use this deck:</p>
-        <input type="text" id="shareUrl" readonly style="width: 100%;">
-      </div>
-      <div style="margin-top: 1rem;">
-        <button id="saveDeckBtn">Save & Close</button>
-        <button id="shareDeckBtn" class="secondary">Share Deck</button>
-        <button id="closeDeckEditorBtn" class="secondary">Close</button>
-      </div>
-    </section>
+
 
     <section id="game" class="hidden">
       <div id="meta">
@@ -101,21 +78,7 @@
       </div>
     </section>
 
-    <div id="trumpModal" class="hidden modal-overlay">
-      <div class="modal">
-        <h2>Trump Card - Write Your Response</h2>
-        <p>This is a Trump card! Write your own creative response for this scenario:</p>
-        <p id="trumpScenario" style="font-weight: bold; color: var(--accent); margin: 16px 0;"></p>
-        <textarea id="trumpResponse" placeholder="Enter your witty response here..." maxlength="200" style="width: 100%; padding: 12px; border: 2px solid var(--accent); border-radius: 8px; font-size: 14px; resize: vertical; min-height: 100px;"></textarea>
-        <div style="margin-top: 16px; color: var(--muted); font-size: 12px;">
-          Note: Your response is temporary and won't be saved for later rounds.
-        </div>
-        <div style="display: flex; gap: 12px; margin-top: 20px;">
-          <button id="submitTrumpBtn" style="flex: 1;">Submit Response</button>
-          <button id="cancelTrumpBtn" class="secondary" style="flex: 1;">Cancel</button>
-        </div>
-      </div>
-    </div>
+
 
     <footer>
       <small>Hot-seat web implementation — host on GitHub Pages to play online.</small>

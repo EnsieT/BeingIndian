@@ -9,9 +9,7 @@ let state = {
   played: [],
   category: 'basic',
   playerCount: 4,
-  currentPlayerTurns: null, // track which player is currently playing for Trump card modal
-  trumpCardPlayerIdx: null, // track player who selected Trump card
-  trumpCardIndex: null // track which card index is the Trump card
+  currentPlayerTurns: null // track which player is currently playing
 };
 
 const $ = id => document.getElementById(id);
@@ -92,10 +90,6 @@ async function loadCards(){
 
 function loadCategory(cat){
   state.category = cat;
-  if (cat === 'custom') {
-    loadCustomDeck();
-    return;
-  }
   const catData = state.categoryData[cat];
   // Prefer scenarios that contain exactly one blank (single-blank scenarios)
   function countBlanksExact(s){
@@ -126,47 +120,7 @@ function shuffle(arr){
   }
 }
 
-function isTrumpCard(cardText){
-  return cardText && cardText.startsWith('TRUMP:');
-}
 
-function getTrumpCardDisplay(cardText){
-  return cardText.replace(/^TRUMP:\s*/, '').trim();
-}
-
-function showTrumpModal(scenario, playerIdx, cardIdx){
-  state.trumpCardPlayerIdx = playerIdx;
-  state.trumpCardIndex = cardIdx;
-  $('trumpScenario').textContent = fillBlanks(scenario);
-  $('trumpResponse').value = '';
-  $('trumpModal').classList.remove('hidden');
-  $('trumpResponse').focus();
-}
-
-function closeTrumpModal(){
-  $('trumpModal').classList.add('hidden');
-  state.trumpCardPlayerIdx = null;
-  state.trumpCardIndex = null;
-}
-
-function submitTrumpResponse(){
-  const customResponse = $('trumpResponse').value.trim();
-  if(!customResponse){
-    alert('Please write a response before submitting!');
-    return;
-  }
-  
-  const playerIdx = state.trumpCardPlayerIdx;
-  const player = state.players[playerIdx];
-  
-  // Replace the Trump card with the custom response in the player's hand
-  player.hand[state.trumpCardIndex] = customResponse;
-  
-  closeTrumpModal();
-  
-  // Auto-play single-card Trump response
-  playCard(playerIdx, state.trumpCardIndex);
-}
 
 function shuffleHand(){
   // Check if we have a current player
@@ -179,7 +133,7 @@ function shuffleHand(){
   // Return all cards to discard and draw new ones
   player.hand.forEach(card => state.discard.push(card));
   player.hand = [];
-  for(let i=0; i<10; i++){
+  for(let i=0; i<7; i++){
     player.hand.push(drawResponse());
   }
   
@@ -255,9 +209,9 @@ function initializeGame(names){
   
   shuffle(state.scenarios);
   shuffle(state.responses);
-  // deal 10 each
+  // deal 7 each
   for(let p of state.players){
-    for(let i=0;i<10;i++) p.hand.push(drawResponse());
+    for(let i=0;i<7;i++) p.hand.push(drawResponse());
   }
   state.judgeIndex = 0; state.playIndex = 0; state.played = [];
   $('setup').classList.add('hidden');
@@ -271,8 +225,8 @@ function drawResponse(){
     state.responses = state.discard.slice(); state.discard = []; shuffle(state.responses);
   }
   if(state.responses.length===0){
-    // Pool completely empty — give a wild card so the player can still play
-    return 'TRUMP: ✍️ Wild Card — Write your own!';
+    // Pool completely empty — recycle a generic filler
+    return 'No more responses available!';
   }
   return state.responses.pop();
 }
@@ -330,25 +284,11 @@ function startPlayTurn(){
   player.hand.forEach((card,i)=>{
     const el=document.createElement('div');
     el.className='card';
-    
-    // Check if this is a Trump card and apply special styling
-    const isTrump = isTrumpCard(card);
-    if(isTrump){
-      el.classList.add('trump-card');
-      el.textContent = getTrumpCardDisplay(card);
-    } else {
-      el.textContent = card;
-    }
+    el.textContent = card;
     
     cardEls[i] = el;
     el.onclick=()=>{ 
       playSound('select');
-      
-      // Handle Trump card - show modal instead of auto-playing
-      if(isTrump){
-        showTrumpModal(state.currentScenario, idx, i);
-        return;
-      }
       
       if(selectedCards.includes(i)){
         selectedCards = selectedCards.filter(x => x !== i);
@@ -462,8 +402,8 @@ function judgePick(play, cardElement){
   state.players[play.player].score++;
   // move played to discard
   state.played.forEach(p=>state.discard.push(p.card));
-  // refill hands to 10
-  state.players.forEach(p=>{while(p.hand.length<10) p.hand.push(drawResponse())});
+  // refill hands to 7
+  state.players.forEach(p=>{while(p.hand.length<7) p.hand.push(drawResponse())});
   // advance judge
   state.judgeIndex = (state.judgeIndex+1) % state.players.length;
   renderScoreboard();
@@ -489,8 +429,6 @@ function resetGame(){
   state.category = 'basic';
   state.playerCount = 4;
   state.currentPlayerTurns = null;
-  state.trumpCardPlayerIdx = null;
-  state.trumpCardIndex = null;
 
   // reset UI
   if($('game')) $('game').classList.add('hidden');
@@ -503,90 +441,16 @@ function resetGame(){
   if($('scenarioText')) $('scenarioText').textContent = '—';
   if($('roundInfo')) $('roundInfo').textContent = '';
   if($('scoreboard')) $('scoreboard').innerHTML = '';
-  if($('trumpModal')) closeTrumpModal();
-
   // reload cards data
   loadCards().then(()=> debugLog('Cards reloaded after reset')).catch(e=>debugLog('reload error: '+(e&&e.message)));
 }
 
 
-function showDeckEditor() {
-  $('deckEditor').classList.remove('hidden');
-  $('setup').classList.add('hidden');
-  // Load existing custom deck from localStorage
-  const customDeck = JSON.parse(localStorage.getItem('customDeck') || '{}');
-  if (customDeck.scenarios) {
-    $('scenarioInput').value = customDeck.scenarios.join('\n');
-  }
-  if (customDeck.responses) {
-    $('responseInput').value = customDeck.responses.join('\n');
-  }
-}
 
-function closeDeckEditor() {
-  $('deckEditor').classList.add('hidden');
-  $('setup').classList.remove('hidden');
-  $('shareLink').classList.add('hidden');
-}
-
-function saveCustomDeck() {
-  const scenarios = $('scenarioInput').value.split('\n').map(s => s.trim()).filter(Boolean);
-  const responses = $('responseInput').value.split('\n').map(r => r.trim()).filter(Boolean);
-  const customDeck = { scenarios, responses };
-  localStorage.setItem('customDeck', JSON.stringify(customDeck));
-  debugLog('Custom deck saved to localStorage.');
-  closeDeckEditor();
-}
-
-function shareCustomDeck() {
-  const customDeck = localStorage.getItem('customDeck');
-  if (!customDeck) {
-    alert('Please save a custom deck first!');
-    return;
-  }
-  const encodedDeck = btoa(customDeck);
-  const url = new URL(window.location.href);
-  url.searchParams.set('deck', encodedDeck);
-  $('shareUrl').value = url.href;
-  $('shareLink').classList.remove('hidden');
-  debugLog('Generated shareable URL.');
-}
-
-function loadCustomDeck() {
-  const customDeck = JSON.parse(localStorage.getItem('customDeck') || '{}');
-  if (customDeck.scenarios && customDeck.responses) {
-    state.scenarios = customDeck.scenarios.slice();
-    state.responses = customDeck.responses.slice();
-    debugLog(`Loaded custom deck with ${state.scenarios.length} scenarios and ${state.responses.length} responses.`);
-  } else {
-    debugLog('No custom deck found in localStorage.');
-    // Provide some default cards if the custom deck is empty
-    state.scenarios = ['Why is the sky blue?', 'What is love?'];
-    state.responses = ['Baby don\'t hurt me', 'A miserable pile of secrets'];
-  }
-}
-
-function loadDeckFromURL() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const encodedDeck = urlParams.get('deck');
-  if (encodedDeck) {
-    try {
-      const decodedDeck = atob(encodedDeck);
-      JSON.parse(decodedDeck); // Validate JSON
-      localStorage.setItem('customDeck', decodedDeck);
-      $('categorySelect').value = 'custom';
-      debugLog('Loaded deck from URL and set category to custom.');
-    } catch (e) {
-      debugLog('Failed to load deck from URL: ' + e.message);
-      alert('The shared deck link appears to be invalid.');
-    }
-  }
-}
 
 
 document.addEventListener('DOMContentLoaded',async()=>{
   await loadCards();
-  loadDeckFromURL();
   // Attach Start click handler and log for debugging
   try{
     const start = $('startBtn');
@@ -602,21 +466,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
   $('nextTurnBtn').onclick=()=>{ startPlayTurn(); };
   $('nextRoundBtn').onclick=()=>{ nextRound(); $('nextRoundBtn').classList.add('hidden'); };
 
-  $('showDeckEditorBtn').onclick = showDeckEditor;
-  $('closeDeckEditorBtn').onclick = closeDeckEditor;
-  $('saveDeckBtn').onclick = saveCustomDeck;
-  $('shareDeckBtn').onclick = shareCustomDeck;
-  
-  // Trump card modal handlers
-  $('submitTrumpBtn').onclick = submitTrumpResponse;
-  $('cancelTrumpBtn').onclick = closeTrumpModal;
-  // Allow Enter key in textarea to submit (Shift+Enter for new line)
-  $('trumpResponse').addEventListener('keydown', (e)=>{
-    if(e.key === 'Enter' && !e.shiftKey){
-      e.preventDefault();
-      submitTrumpResponse();
-    }
-  });
+
   
   // Shuffle button handler
   $('shuffleBtn').onclick = shuffleHand;
